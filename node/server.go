@@ -5,8 +5,11 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+
+	engine "github.com/eminmuhammadi/go-tcp/engine"
 )
 
+// Server
 func Server(ip string, port string, certFile string, keyFile string) error {
 	// TLS Certificate
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
@@ -15,20 +18,8 @@ func Server(ip string, port string, certFile string, keyFile string) error {
 	}
 
 	// Listener
-	listener, err := tls.Listen("tcp", fmt.Sprintf("%s:%s", ip, port), &tls.Config{
-		/* For self-signed certificates ignored
-		ClientAuth:               tls.RequireAndVerifyClientCert,
-		*/
-		Certificates:             []tls.Certificate{cert},
-		MinVersion:               tls.VersionTLS12,
-		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
-		PreferServerCipherSuites: true,
-		CipherSuites: []uint16{
-			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
-		},
+	listener, err := tls.Listen("tcp4", fmt.Sprintf("%s:%s", ip, port), &tls.Config{
+		Certificates: []tls.Certificate{cert},
 	})
 
 	if err != nil {
@@ -54,6 +45,7 @@ func Server(ip string, port string, certFile string, keyFile string) error {
 	}
 }
 
+// Process data
 func processData(connection net.Conn) error {
 	reader := bufio.NewReader(connection)
 
@@ -64,8 +56,7 @@ func processData(connection net.Conn) error {
 			return err
 		}
 
-		// Data => string(data)
-		// Reprocess data
-		connection.Write([]byte(string(data)))
+		// Handle data
+		connection.Write([]byte(engine.Handler(string(data))))
 	}
 }

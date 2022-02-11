@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// Client
 func Client(ip string, port string, data string, certFile string, keyFile string) error {
 	// TLS Certificate
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
@@ -13,18 +14,9 @@ func Client(ip string, port string, data string, certFile string, keyFile string
 	}
 
 	// Connection
-	connection, err := tls.Dial("tcp", fmt.Sprintf("%s:%s", ip, port), &tls.Config{
-		InsecureSkipVerify:       true, // For self-signed certificates
-		Certificates:             []tls.Certificate{cert},
-		MinVersion:               tls.VersionTLS12,
-		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
-		PreferServerCipherSuites: true,
-		CipherSuites: []uint16{
-			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
-		},
+	connection, err := tls.Dial("tcp4", fmt.Sprintf("%s:%s", ip, port), &tls.Config{
+		InsecureSkipVerify: true, // For self-signed certificates
+		Certificates:       []tls.Certificate{cert},
 	})
 
 	if err != nil {
